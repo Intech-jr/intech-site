@@ -46,6 +46,6 @@ There is no test suite configured.
 
 Documented in `DEPLOY_VPS.md` (Portuguese): multi-stage `Dockerfile` → `docker-compose.yml` runs `app` (port 3000) behind an `nginx` container configured by `infra/nginx/default.conf`, published on host port `${NGINX_PORT:-8080}`. Deploy/update with `docker compose up -d --build` (or `NGINX_PORT=80 docker compose up -d --build`).
 
-Known inconsistencies to be aware of when touching deploy:
-- The `Dockerfile` copies `.next/standalone` and runs `node server.js`, and `DEPLOY_VPS.md` claims `output: 'standalone'` is set — but `next.config.ts` is currently empty, so the Docker build's runner stage will fail until `output: 'standalone'` is restored.
-- `docker-compose.yml` does not load an `env_file`, so `WHATSAPP_PORTAL_*` vars are not passed to the `app` container unless added.
+The `Dockerfile` copies `.next/standalone` and runs `node server.js`, so `output: 'standalone'` in `next.config.ts` is required — removing it breaks the Docker build.
+
+Known inconsistency: `docker-compose.yml` does not load an `env_file`, so `WHATSAPP_PORTAL_*` vars are not passed to the `app` container unless added.
