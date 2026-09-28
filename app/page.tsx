@@ -413,6 +413,74 @@ export default function Home() {
           </div>
         </section>
 
+        {/* ── Advisor ── */}
+        <section id="advisor" className="section advisor" aria-labelledby="advisor-title">
+          <div className="container">
+            <div className="section-header reveal">
+              <div className="section-chip">
+                <i className="bi bi-mortarboard-fill" />
+                Orientação
+              </div>
+              <h2 id="advisor-title" className="section-title">
+                Professora orientadora
+              </h2>
+            </div>
+
+            <div className="advisor__card reveal" style={{ '--i': 1 } as React.CSSProperties}>
+              <div className="advisor__photo-wrap">
+                <Image
+                  src="/images/orientadora.webp"
+                  alt="Prof.ª Dra. Aracele Garcia de Oliveira Fassbinder"
+                  width={191}
+                  height={198}
+                  className="advisor__photo"
+                />
+              </div>
+
+              <div className="advisor__content">
+                <h3 className="advisor__name">Prof.ª Dra. Aracele Garcia de Oliveira Fassbinder</h3>
+                <p className="advisor__role">Docente efetiva do IFSULDEMINAS — Campus Muzambinho desde 2010</p>
+                <p className="advisor__text">
+                  Aracele Garcia de Oliveira Fassbinder é Bacharel em Ciência da Computação pelo
+                  Centro Universitário de Formiga - UNIFORMG (2004). Especialista em Administração
+                  de Sistemas de Informação pela Universidade Federal de Lavras - UFLA (2007).
+                  Especialista em Design Instrucional para EaD Virtual pela Universidade Federal de
+                  Itajubá - UNIFEI (2012). Mestre em Ciência da Computação pela Universidade Federal
+                  de Santa Catarina - UFSC (2010). Doutora em Ciência da Computação pelo Programa de
+                  Pós-Graduação em Ciências de Computação e Matemática Computacional da Universidade
+                  de São Paulo - USP/ICMC (2018) com estágio doutoral no Birkbeck College -
+                  University of London (Junho/2015 até Maio/2016). Pesquisadora visitante no
+                  Instituto Politécnico de Bragança, Portugal (12/2013 e 01/2014).
+                </p>
+                <p className="advisor__text">
+                  É Professora Efetiva no IFSULDEMINAS - Campus Muzambinho, desde 2010. Fundadora do
+                  Laboratório de Tecnologias de Software e Computação Aplicada à Educação (LabSoft)
+                  do curso de Ciência da Computação do IFSULDEMINAS - Campus Muzambinho, desde 2012.
+                  Colaboradora do Clube de Empreendedorismo do referido campus. Atua nas áreas de
+                  Engenharia de Software e Computação Aplicada à Educação. Associada da Sociedade
+                  Brasileira de Computação (SBC).
+                </p>
+
+                <div className="advisor__tags">
+                  {['Engenharia de Software', 'Computação na Educação', 'Doutora ICMC/USP'].map((tag) => (
+                    <span key={tag} className="advisor__tag">{tag}</span>
+                  ))}
+                </div>
+
+                <a
+                  href="http://lattes.cnpq.br/4653358157110108"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="advisor__link"
+                >
+                  <i className="bi bi-box-arrow-up-right" aria-hidden="true" />
+                  Currículo Lattes
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ── CTA Strip ── */}
         <section className="cta-section" aria-labelledby="cta-title">
           <div className="container cta-section__inner">
