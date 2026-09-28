@@ -4,42 +4,48 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-Marketing/portfolio site for "Intech Jr." (junior enterprise), built with Next.js 15 (App Router) + React 19 + TypeScript. Single-page site (`app/page.tsx`) in Brazilian Portuguese, no database, no CMS. Content (services, portfolio items, process steps) is hardcoded as arrays inside `app/page.tsx`.
+Marketing/portfolio site for "Intech Jr." (junior enterprise at IFSULDEMINAS campus Muzambinho), built with Next.js 15 (App Router) + React 19 + TypeScript. All content is in Brazilian Portuguese; no database, no CMS. Content (services, portfolio items, process steps, OLIP data) is hardcoded as arrays inside the page files. Production domain: `intechjr.muz.ifsuldeminas.edu.br` (hardcoded in `app/robots.ts`, `app/sitemap.ts`, and `app/olip/page.tsx` metadata).
 
 ## Commands
 
 ```bash
 npm run dev      # start dev server (localhost:3000)
-npm run build    # production build (standalone output, see next.config.ts)
+npm run build    # production build
 npm run start    # run the production build
 npm run lint     # next lint
+node otimizar.js # convert the images listed in the script (public/images) to .webp via sharp
 ```
 
 There is no test suite configured.
 
+## Routes
+
+- **`/`** (`app/page.tsx`) — single-page marketing site: hero, services, about, process, portfolio, CTA, contact, identified by `<section id="...">` anchors used for in-page nav links.
+- **`/olip`** (`app/olip/page.tsx`) — landing page for the 15ª OLIP (internal programming olympiad). Has its own SEO metadata and schema.org `Event` JSON-LD; uses `OlipGallery` and `OlipChampions`. `Navbar.tsx` special-cases `pathname === '/olip'` for its active-link state (section-based scroll tracking is disabled there).
+- **`/whatsapp`** — internal, password-gated page (not in the public nav or sitemap) that lets the sales team open the company WhatsApp Web session. Session is a signed, httpOnly, browser-session-only cookie (`whatsapp_session`), checked directly in `app/whatsapp/page.tsx` via `cookies()`. Auth logic lives in `lib/whatsappAuth.ts`; the only API route, `app/api/whatsapp-auth/route.ts`, verifies the shared password (`WHATSAPP_PORTAL_PASSWORD`) and issues the cookie (signed with `WHATSAPP_PORTAL_SECRET`). WhatsApp Web can't be iframed (frame-denying headers), so the page only links out to `web.whatsapp.com` in a new tab and relies on WhatsApp multi-device linking for concurrent access. Design/plan docs: `docs/superpowers/`.
+- `app/robots.ts` / `app/sitemap.ts` — Next metadata routes; add new public pages to the sitemap.
+
 ## Architecture
 
-- **App Router, one route**: everything renders from `app/layout.tsx` (global `<head>`, fonts, Bootstrap Icons CDN, mounts `ScrollReveal`) and `app/page.tsx` (all page sections: hero, services, about, process, portfolio, CTA, contact — identified by `<section id="...">` anchors used for in-page nav links).
-- **Components are presentation-only**, not routed:
-  - `Navbar.tsx` — site nav
-  - `ServicesCarousel.tsx`, `PortfolioCarousel.tsx` — client-side carousels fed by data arrays defined in `page.tsx`
-  - `StatsCounter.tsx` — animated count-up stats, driven by `IntersectionObserver` (`useCountUp` hook), pure client component
-  - `ScrollReveal.tsx` — global `IntersectionObserver` that toggles a `.visible` class on any `.reveal` element as it scrolls into view; mounted once in the root layout and relied on by CSS scroll animations throughout `globals.css`
-  - `ContactForm.tsx` — **does not send email**. It builds a WhatsApp deep link (`wa.me/<number>`) from the form fields and opens it in a new tab; there is no backend/API route for contact submissions
-- **`/whatsapp`** — internal, password-gated page (not linked from the public nav) that lets the sales team open the company WhatsApp Web session. Session is a signed, httpOnly, browser-session-only cookie (`whatsapp_session`), checked directly in `app/whatsapp/page.tsx` via `cookies()`. Auth logic lives in `lib/whatsappAuth.ts`; the only API route in the project, `app/api/whatsapp-auth/route.ts`, verifies the shared password (`WHATSAPP_PORTAL_PASSWORD` env var) and issues the cookie (signed with `WHATSAPP_PORTAL_SECRET`). WhatsApp Web can't be embedded in an iframe (it sends frame-denying headers), so this page only links out to `web.whatsapp.com` in a new tab — it relies on WhatsApp's own multi-device linking for concurrent sales-team access.
-- **Styling**: single large stylesheet `app/globals.css` (~2300 lines), no CSS modules/Tailwind. Class-name-driven (BEM-ish: `stat__number`, `hero__title`, etc.).
-- **Static assets**: `public/images/*` and `public/videos/video.mp4`, referenced directly by path from the data arrays in `page.tsx`.
-- Path alias `@/*` maps to the repo root (see `tsconfig.json`).
+- `app/layout.tsx` holds the global `<head>`, fonts, Bootstrap Icons CDN, and mounts `ScrollReveal` once.
+- **Components are presentation-only** (`components/`):
+  - `ScrollReveal.tsx` — global `IntersectionObserver` that adds `.visible` to any `.reveal` element entering the viewport; CSS scroll animations throughout `globals.css` depend on it, so just add the `reveal` class to new elements.
+  - `ServicesCarousel.tsx`, `PortfolioCarousel.tsx` — client carousels fed by data arrays defined in `page.tsx`.
+  - `StatsCounter.tsx` — count-up stats driven by `IntersectionObserver` (`useCountUp` hook).
+  - `ContactForm.tsx` — **does not send email**. Builds a `wa.me/<number>` deep link from the form fields and opens it in a new tab. The number is a hardcoded `WHATSAPP_NUMBER` constant, not env.
+- **Styling**: single large stylesheet `app/globals.css` (~2600 lines), no CSS modules/Tailwind. BEM-ish class names (`hero__title`, `navbar__olip-link--active`, etc.).
+- **Static assets**: `public/images/*` and `public/videos/video.mp4`, referenced by path from the data arrays. Images are being migrated to `.webp` (generated by `otimizar.js`); prefer the `.webp` variants when referencing images. `sharp` is not a direct dependency — install it (`npm i -D sharp`) if `otimizar.js` fails to resolve it.
+- Path alias `@/*` maps to the repo root.
 
 ## Environment variables
 
-Two example files exist but are inconsistent with current code — `SMTP_*`/`EMAIL_HOST_*` vars and the `nodemailer` dependency are leftover from a prior email-based contact form; the form now submits via WhatsApp only and does not use them:
-- `.env.local.example` — `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`
-- `.env.production.example` — `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `NEXT_PUBLIC_CONTACT_EMAIL`
-- `WHATSAPP_PORTAL_PASSWORD` / `WHATSAPP_PORTAL_SECRET` — required by the `/whatsapp` portal (see Architecture above). Unlike the SMTP vars, these are actively used.
-
-The WhatsApp number used by `ContactForm.tsx` is hardcoded (`WHATSAPP_NUMBER` constant), not sourced from env.
+- `WHATSAPP_PORTAL_PASSWORD` / `WHATSAPP_PORTAL_SECRET` — required by `/whatsapp`. Actively used.
+- `SMTP_*`, `EMAIL_HOST_*`, `NEXT_PUBLIC_CONTACT_EMAIL` (in `.env.local.example` / `.env.production.example`) and the `nodemailer` dependency are leftovers from a prior email-based contact form and are unused.
 
 ## Deployment
 
-Docker-based deploy documented in `DEPLOY_DOCKER_NGINX.md`: multi-stage `Dockerfile` builds the Next.js standalone output (`next.config.ts` sets `output: 'standalone'`), `docker-compose.yml` runs the `app` container behind an `nginx` reverse proxy container (`nginx/default.conf`) on port 80. To deploy: copy `.env.production.example` to `.env.production`, then `docker compose up -d --build`.
+Documented in `DEPLOY_VPS.md` (Portuguese): multi-stage `Dockerfile` → `docker-compose.yml` runs `app` (port 3000) behind an `nginx` container configured by `infra/nginx/default.conf`, published on host port `${NGINX_PORT:-8080}`. Deploy/update with `docker compose up -d --build` (or `NGINX_PORT=80 docker compose up -d --build`).
+
+Known inconsistencies to be aware of when touching deploy:
+- The `Dockerfile` copies `.next/standalone` and runs `node server.js`, and `DEPLOY_VPS.md` claims `output: 'standalone'` is set — but `next.config.ts` is currently empty, so the Docker build's runner stage will fail until `output: 'standalone'` is restored.
+- `docker-compose.yml` does not load an `env_file`, so `WHATSAPP_PORTAL_*` vars are not passed to the `app` container unless added.
